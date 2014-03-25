@@ -12,8 +12,8 @@
 // - E-mail usually won't line-break if there's no punctuation to break at.
 // - Double-clicking selects the whole number as one word if it's all alphanumeric.
 //
-#ifndef BITCOIN_BASE58_H
-#define BITCOIN_BASE58_H
+#ifndef STARTCOIN_BASE58_H
+#define STARTCOIN_BASE58_H
 
 #include <string>
 #include <vector>
@@ -272,9 +272,9 @@ class CBitcoinAddress : public CBase58Data
 public:
     enum
     {
-        PUBKEY_ADDRESS = 48, // Litecoin addresses start with L
+        PUBKEY_ADDRESS = 125, // address begins with s
         SCRIPT_ADDRESS = 5,
-        PUBKEY_ADDRESS_TEST = 111,
+        PUBKEY_ADDRESS_TEST = 127, // address begins with t
         SCRIPT_ADDRESS_TEST = 196,
     };
 
@@ -457,4 +457,4 @@ public:
     }
 };
 
-#endif // BITCOIN_BASE58_H
+#endif // STARTCOIN_BASE58_H

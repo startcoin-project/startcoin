@@ -1,5 +1,5 @@
-#ifndef BITCOINAMOUNTFIELD_H
-#define BITCOINAMOUNTFIELD_H
+#ifndef STARTCOINAMOUNTFIELD_H
+#define STARTCOINAMOUNTFIELD_H
 
 #include <QWidget>
 
@@ -58,4 +58,4 @@ private slots:
 
 };
 
-#endif // BITCOINAMOUNTFIELD_H
+#endif // STARTCOINAMOUNTFIELD_H

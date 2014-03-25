@@ -5,17 +5,11 @@ This product includes software developed by the OpenSSL Project for use in the [
 cryptographic software written by Eric Young ([eay@cryptsoft.com](mailto:eay@cryptsoft.com)), and UPnP software written by Thomas Bernard.
 
 
-See readme-qt.rst for instructions on building Litecoin-Qt, the
+See readme-qt.rst for instructions on building StartCOIN-Qt, the
 graphical user interface.
 
 WINDOWS BUILD NOTES
 ===================
-
-Compilers Supported
--------------------
-TODO: What works?
-Note: releases are cross-compiled using mingw running on Linux.
-
 
 Dependencies
 ------------
@@ -80,10 +74,10 @@ MSYS shell:
 	mkdir miniupnpc
 	cp *.h miniupnpc/
 
-Litecoin
+StartCOIN
 -------
 DOS prompt:
 
-	cd \litecoin\src
+	cd \startcoin\src
 	mingw32-make -f makefile.mingw
-	strip litecoind.exe
+	strip startcoind.exe

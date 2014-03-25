@@ -1,5 +1,5 @@
-#ifndef BITCOINGUI_H
-#define BITCOINGUI_H
+#ifndef STARTCOINGUI_H
+#define STARTCOINGUI_H
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
@@ -197,4 +197,4 @@ private slots:
     void detectShutdown();
 };
 
-#endif // BITCOINGUI_H
+#endif // STARTCOINGUI_H
