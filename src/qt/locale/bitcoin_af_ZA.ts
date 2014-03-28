@@ -2228,7 +2228,7 @@ Address: %4
     </message>
     <message>
         <location line="-28"/>
-        <source>Listen for connections on &lt;port&gt; (default: 57467 or testnet: 67467)</source>
+        <source>Listen for connections on &lt;port&gt; (default: 7247 or testnet: 17247)</source>
         <translation type="unfinished"/>
     </message>
     <message>
