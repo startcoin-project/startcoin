@@ -6,11 +6,11 @@ This document outlines the technical implementation details for StartCOIN. It sh
 Specifications
 --------------
 
-* XXX coins in total
-* 1 minute block time
-* XXX coins per block
-* Block reward halves ever XXX
-* Retargets difficulty using Kimoto Gravity Well
+* 84 million coins in total
+* 1 minute average block time
+* 40 coins per block
+* Block reward halves every 12 months
+* Retargets difficulty temporally using Kimoto's Gravity Well
 
 Port numbers
 ------------
