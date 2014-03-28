@@ -33,7 +33,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x8110fd704280a3cb9ec3c3beea079d00b02f8bc84f1221c32a388210b388d878");
+uint256 hashGenesisBlock("0xd7b51fbf22c33905ea0e56952b3f4dc5a24e849977573b1885b4b81a9112f7d9");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // StartCOIN: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2766,7 +2766,7 @@ bool LoadBlockIndex()
         pchMessageStart[1] = 0xc4;
         pchMessageStart[2] = 0xb9;
         pchMessageStart[3] = 0xde;
-        hashGenesisBlock = uint256("0xf5ae71e26c74beacc88382716aced69cddf3dffff24f384e1808905e0188f68f");
+        hashGenesisBlock = uint256("0xa6622fc350215b20cffd2039845af19d20f0648205695045180d19442aba3279");
     }
 
     //
@@ -2793,7 +2793,7 @@ bool InitBlockIndex() {
     if (!fReindex) {
         // Genesis block
 
-        const char* pszTimestamp = "24/03/14 TODO";
+        const char* pszTimestamp = "BBC News 27/03/14: Scientists hail synthetic chromosome advance";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -2807,14 +2807,14 @@ bool InitBlockIndex() {
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1395702837;
+        block.nTime    = 1396033689;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 933675;
+        block.nNonce   = 131842;
 
         if (fTestNet)
         {
             block.nTime    = 1395702837;
-            block.nNonce   = 0;
+            block.nNonce   = 917203;
         }
 
         //// debug print
@@ -2824,7 +2824,7 @@ bool InitBlockIndex() {
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
 
         // Merkle root
-        assert(block.hashMerkleRoot == uint256("0x4bbfcdd4e2bf82b4ec856ec7a1a16002ee3572f99c482404aa565b3b12c1fe40"));
+        assert(block.hashMerkleRoot == uint256("0x214fa7022f74fd9fbac78c23c420de95c09bb4faff5f5486a7f11fe77f605d97"));
 
         // Set to true to generate a new Genesis block
         if (true && block.GetHash() != hashGenesisBlock)
