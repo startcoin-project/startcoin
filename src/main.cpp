@@ -1091,8 +1091,9 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
 
     int64 nSubsidy = nSubsidyBase;
 
-    // Subsidy is cut in half every 840000 blocks
-    nSubsidy >>= (nHeight / 840000);
+    // Subsidy is cut in half every 525600 blocks
+    // this is every 12 months
+    nSubsidy >>= (nHeight / 525600);
 
     return nSubsidy + nFees;
 }
