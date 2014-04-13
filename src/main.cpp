@@ -1134,6 +1134,8 @@ unsigned int static GetNextWorkRequired_V1(const CBlockIndex* pindexLast, const 
     return bnProofOfWorkLimit.GetCompact();
 }
 
+// This is the TW-patched KGW implementation, according to the patch by Nite69 (https://bitcointalk.org/index.php?topic=552895.0)
+// This prevents the Time-Warp attack described by BCX from occurring.
 unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader *pblock, uint64 TargetBlocksSpacingSeconds, uint64 PastBlocksMin, uint64 PastBlocksMax)
 {
     const CBlockIndex *BlockLastSolved = pindexLast;
@@ -1151,7 +1153,8 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
     double EventHorizonDeviationSlow;
         
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || (uint64)BlockLastSolved->nHeight < PastBlocksMin) { return bnProofOfWorkLimit.GetCompact(); }
-        
+
+    int64 LatestBlockTime = BlockLastSolved->GetBlockTime();
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
         if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
         PastBlocksMass++;
@@ -1159,13 +1162,13 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
         if (i == 1) { PastDifficultyAverage.SetCompact(BlockReading->nBits); }
         else { PastDifficultyAverage = ((CBigNum().SetCompact(BlockReading->nBits) - PastDifficultyAveragePrev) / i) + PastDifficultyAveragePrev; }
         PastDifficultyAveragePrev = PastDifficultyAverage;
-        
-        PastRateActualSeconds = BlockLastSolved->GetBlockTime() - BlockReading->GetBlockTime();
+        if (LatestBlockTime < BlockReading->GetBlockTime()) { LatestBlockTime = BlockReading->GetBlockTime(); }
+        PastRateActualSeconds = LatestBlockTime - BlockReading->GetBlockTime();
         PastRateTargetSeconds = TargetBlocksSpacingSeconds * PastBlocksMass;
         PastRateAdjustmentRatio = double(1);
-        if (PastRateActualSeconds < 0) { PastRateActualSeconds = 0; }
+        if (PastRateActualSeconds < 1) { PastRateActualSeconds = 1; }
         if (PastRateActualSeconds != 0 && PastRateTargetSeconds != 0) {
-        PastRateAdjustmentRatio = double(PastRateTargetSeconds) / double(PastRateActualSeconds);
+            PastRateAdjustmentRatio = double(PastRateTargetSeconds) / double(PastRateActualSeconds);
         }
         EventHorizonDeviation = 1 + (0.7084 * pow((double(PastBlocksMass)/double(28.2)), -1.228));
         EventHorizonDeviationFast = EventHorizonDeviation;
