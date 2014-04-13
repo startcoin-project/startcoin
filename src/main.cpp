@@ -1064,13 +1064,13 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 }
 
 static const int64 nSubsidyGenesisBlock = 1 * COIN;
-static const int64 nSubsidyInitialBlock = 42024000 * COIN;
-static const int64 nSubsidyRolloffBlock = 0 * COIN;
+static const int64 nSubsidyInitialBlock = 42023881 * COIN;
+static const int64 nSubsidyRolloffBlock = 1 * COIN;
 static const int64 nSubsidyBase = 40 * COIN;
 
 static const int nHeightGenesisBlock = 0;
 static const int nHeightInitialBlock = 1;
-static const int nHeightRolloffBlocks = 100;
+static const int nHeightRolloffBlocks = 120;
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
