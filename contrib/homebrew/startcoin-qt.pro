@@ -1,7 +1,7 @@
 diff --git a/startcoin-qt.pro b/startcoin-qt.pro
 index d938c07..e1dd4ec 100644
---- a/bitcoin-qt.pro
-+++ b/bitcoin-qt.pro
+--- a/startcoin-qt.pro
++++ b/startcoin-qt.pro
 @@ -353,7 +353,7 @@
  }
  
