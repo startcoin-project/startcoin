@@ -1247,6 +1247,7 @@ void ThreadDNSAddressSeed()
 unsigned int pnSeed[] = {
     0x452363C0, /* node1.startcoin.org - 192.99.35.69 */
     0x05363B25, /* node2.startcoin.org - 37.59.54.5 */
+    0x49DCE2BC, /* testnet.node1.startcoin.org - 188.226.220.73 */
 };
 
 void DumpAddresses()
