@@ -1071,6 +1071,8 @@ static const int64 nSubsidyBase = 40 * COIN;
 static const int nHeightGenesisBlock = 0;
 static const int nHeightInitialBlock = 1;
 static const int nHeightRolloffBlocks = 120;
+static const int nHeightKGWBlocks = 20000;
+static const int nHeightKGWBlocksTest = 30000;
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
@@ -2839,11 +2841,10 @@ bool InitBlockIndex() {
 
             uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
             uint256 thash;
-            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
 
             loop
             {
-                scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+                thash = block.GetPoWHash();
                 if (thash <= hashTarget)
                     break;
                 if ((block.nNonce & 0xFFF) == 0)
@@ -4671,10 +4672,9 @@ void static StartCOINMiner(CWallet *pwallet)
             unsigned int nHashesDone = 0;
 
             uint256 thash;
-            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
             loop
             {
-                scrypt_1024_1_1_256_sp(BEGIN(pblock->nVersion), BEGIN(thash), scratchpad);
+                thash = pblock->GetPoWHash();
 
                 if (thash <= hashTarget)
                 {
