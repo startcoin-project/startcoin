@@ -254,6 +254,9 @@ static const CRPCCommand vRPCCommands[] =
     { "listsinceblock",         &listsinceblock,         false,     false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
+    { "getcheckpoint",          &getcheckpoint,          true,      true,       false },
+    { "sendcheckpoint",         &sendcheckpoint,         true,      true,       false },
+    { "enforcecheckpoint",      &enforcecheckpoint,      true,      true,       false },
     { "listunspent",            &listunspent,            false,     false,      true },
     { "getrawtransaction",      &getrawtransaction,      false,     false,      false },
     { "createrawtransaction",   &createrawtransaction,   false,     false,      false },
@@ -1172,6 +1175,7 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<boost::int64_t>(params[1]);
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<boost::int64_t>(params[1]);
+    if (strMethod == "enforcecheckpoint"      && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "sendmany"               && n > 1) ConvertTo<Object>(params[1]);
     if (strMethod == "sendmany"               && n > 2) ConvertTo<boost::int64_t>(params[2]);
     if (strMethod == "addmultisigaddress"     && n > 0) ConvertTo<boost::int64_t>(params[0]);

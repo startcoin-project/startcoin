@@ -233,7 +233,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/sph_echo.h \
     src/sph_shavite.h \
     src/sph_simd.h \
-    src/sph_types.h
+    src/sph_types.h \
+    src/checkpointsync.h
 
 SOURCES += src/qt/bitcoin.cpp \
     src/qt/bitcoingui.cpp \
@@ -315,7 +316,8 @@ SOURCES += src/qt/bitcoin.cpp \
     src/cubehash.c \
     src/shavite.c \
     src/echo.c \
-    src/simd.c
+    src/simd.c \
+    src/checkpointsync.cpp
 
 RESOURCES += src/qt/bitcoin.qrc
 
