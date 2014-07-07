@@ -2398,8 +2398,10 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 
     // if responsible for sync-checkpoint send it
     if (pfrom && !CSyncCheckpoint::strMasterPrivKey.empty() &&
-        (int)GetArg("-checkpointdepth", -1) >= 0)
+        (int)GetArg("-checkpointdepth", -1) >= 0) {
+        printf("ProcessBlock(): Sending sync-checkpoint");
         SendSyncCheckpoint(AutoSelectSyncCheckpoint());
+    }
 
     return true;
 }
