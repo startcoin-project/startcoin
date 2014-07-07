@@ -10,6 +10,7 @@
 #include "init.h"
 #include "util.h"
 #include "ui_interface.h"
+#include "checkpointsync.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -597,6 +598,14 @@ bool AppInit2(boost::thread_group& threadGroup)
     const char* pszP2SH = "/P2SH/";
     COINBASE_FLAGS << std::vector<unsigned char>(pszP2SH, pszP2SH+strlen(pszP2SH));
 
+    // Set the checkpoint private key, if present
+    // This node will be the ACP master node
+    if (mapArgs.count("-checkpointkey")) {
+        if (!SetCheckpointPrivKey(mapArgs["-checkpointkey"].c_str())) {
+            InitError(strprintf(_("Invalid checkpoint private key for -checkpointkey=<key>: '%s'"), mapArgs["-checkpointkey"].c_str()));
+        }
+    }
+
     // Fee-per-kilobyte amount considered the same as "free"
     // If you are mining, be careful setting this:
     // if you set it to zero then
@@ -668,10 +677,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     int64 nStart;
-
-#if defined(USE_SSE2)
-    scrypt_detect_sse2();
-#endif
 
     // ********************************************************* Step 5: verify wallet database integrity
 
