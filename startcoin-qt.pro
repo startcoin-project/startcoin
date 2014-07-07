@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = startcoin-qt
 macx:TARGET = "StartCOIN-Qt"
-VERSION = 0.8.6.2
+VERSION = 2.0.0.0
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -219,7 +219,21 @@ HEADERS += src/qt/bitcoingui.h \
     src/threadsafety.h \
     src/limitedmap.h \
     src/qt/macnotificationhandler.h \
-    src/qt/splashscreen.h
+    src/qt/splashscreen.h \
+    src/hashblock.h \
+    src/sph_blake.h \
+    src/sph_skein.h \
+    src/sph_keccak.h \
+    src/sph_jh.h \
+    src/sph_groestl.h \
+    src/sph_bmw.h \
+    src/sph_types.h \
+    src/sph_luffa.h \
+    src/sph_cubehash.h \
+    src/sph_echo.h \
+    src/sph_shavite.h \
+    src/sph_simd.h \
+    src/sph_types.h
 
 SOURCES += src/qt/bitcoin.cpp \
     src/qt/bitcoingui.cpp \
@@ -290,7 +304,18 @@ SOURCES += src/qt/bitcoin.cpp \
     src/noui.cpp \
     src/leveldb.cpp \
     src/txdb.cpp \
-    src/qt/splashscreen.cpp
+    src/qt/splashscreen.cpp \
+    src/blake.c \
+    src/bmw.c \
+    src/groestl.c \
+    src/jh.c \
+    src/keccak.c \
+    src/skein.c \
+    src/luffa.c \
+    src/cubehash.c \
+    src/shavite.c \
+    src/echo.c \
+    src/simd.c
 
 RESOURCES += src/qt/bitcoin.qrc
 
@@ -322,15 +347,6 @@ QT += testlib
 TARGET = startcoin-qt_test
 DEFINES += STARTCOIN_QT_TEST
   macx: CONFIG -= app_bundle
-}
-
-contains(USE_SSE2, 1) {
-DEFINES += USE_SSE2
-gccsse2.input  = SOURCES_SSE2
-gccsse2.output = $$PWD/build/${QMAKE_FILE_BASE}.o
-gccsse2.commands = $(CXX) -c $(CXXFLAGS) $(INCPATH) -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME} -msse2 -mstackrealign
-QMAKE_EXTRA_COMPILERS += gccsse2
-SOURCES_SSE2 += src/scrypt-sse2.cpp
 }
 
 # Todo: Remove this line when switching to Qt5, as that option was removed
