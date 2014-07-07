@@ -6,6 +6,7 @@
 #include "txdb.h"
 #include "main.h"
 #include "hash.h"
+#include "checkpointsync.h"
 
 using namespace std;
 
@@ -240,4 +241,24 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
     delete pcursor;
 
     return true;
+}
+
+bool CBlockTreeDB::ReadSyncCheckpoint(uint256& hashCheckpoint)
+{
+    return Read(string("hashSyncCheckpoint"), hashCheckpoint);
+}
+
+bool CBlockTreeDB::WriteSyncCheckpoint(uint256 hashCheckpoint)
+{
+    return Write(string("hashSyncCheckpoint"), hashCheckpoint);
+}
+
+bool CBlockTreeDB::ReadCheckpointPubKey(string& strPubKey)
+{
+    return Read(string("strCheckpointPubKey"), strPubKey);
+}
+
+bool CBlockTreeDB::WriteCheckpointPubKey(const string& strPubKey)
+{
+    return Write(string("strCheckpointPubKey"), strPubKey);
 }
