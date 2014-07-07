@@ -33,7 +33,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x1044e062c339706fc62cc079674bf93ad5d11015a19861ff8aa79d07988375e9");
+uint256 hashGenesisBlock("0x00000e8af85a09bbbdb8990665b3227fd5b251e67cdbe61afcdeeedf8dbb6a7f");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // StartCOIN: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2772,8 +2772,7 @@ bool LoadBlockIndex()
         pchMessageStart[1] = 0xc4;
         pchMessageStart[2] = 0xb9;
         pchMessageStart[3] = 0xde;
-        //hashGenesisBlock = uint256("0xa6622fc350215b20cffd2039845af19d20f0648205695045180d19442aba3279");
-        hashGenesisBlock = uint256("0xa57e889a606d0535ff5f1784afe914c44994f7fdc2858277faa7e2d0ecb093e5");
+        hashGenesisBlock = uint256("0x00000622fee209ef2597327e7d0be1334ddd6be1ccade9d79ed8eead90490632");
     }
 
     //
@@ -2800,7 +2799,7 @@ bool InitBlockIndex() {
     if (!fReindex) {
         // Genesis block
 
-        const char* pszTimestamp = "BBC News 09/06/14: Computer AI passes Turing test in world first";
+        const char* pszTimestamp = "BBC News 04/07/14: Boleto malware may lose Brazil $3.75bn";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -2814,15 +2813,14 @@ bool InitBlockIndex() {
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;;
-        block.nTime    = 1402348768;
+        block.nTime    = 1404645124;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 1116511;
+        block.nNonce   = 87876;
 
         if (fTestNet)
         {
-            block.nTime    = 1402355325;
-            //block.nNonce   = 917203;
-            block.nNonce   = 1392901;
+            block.nTime    = 1404645149;
+            block.nNonce   = 775873;
         }
 
         //// debug print
@@ -2832,7 +2830,7 @@ bool InitBlockIndex() {
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
 
         // Merkle root
-        assert(block.hashMerkleRoot == uint256("0x3c4544908b26095e997dc5b52ef443ebc5e789c857147e5f782f47b71ed168f2"));
+        assert(block.hashMerkleRoot == uint256("0xc66b734b60aa9b032d83f6c8264a7f77c0b7b33903e08e7cddf81af5ea6ff629"));
 
         // Set to true to generate a new Genesis block
         if (true && block.GetHash() != hashGenesisBlock)
