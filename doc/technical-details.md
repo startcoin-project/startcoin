@@ -10,7 +10,7 @@ Specifications
 * 1 minute average block time
 * 40 coins per block
 * Block reward halves every 12 months
-* Retargets difficulty temporally using Kimoto's Gravity Well
+* Retargets difficulty temporally using DigiShield
 * x11 ASIC-resistant Proof-of-Work algorithm
 
 Port numbers
