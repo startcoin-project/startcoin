@@ -1,10 +1,12 @@
 #include "splashscreen.h"
 #include "clientversion.h"
 #include "util.h"
+#include "main.h"
 
 #include <QPainter>
 #undef loop /* ugh, remove this when the #define loop is gone from util.h */
 #include <QApplication>
+#include <QMessageBox>
 
 SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
     QSplashScreen(pixmap, f)
@@ -49,4 +51,11 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
     pixPaint.end();
 
     this->setPixmap(newPixmap);
+
+    // Display a warning if we've surpassed the transition to 2.0
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Please upgrade");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setText("Warning: you are using an old version of StartCOIN. Please upgrade ASAP at <a href=\"https://www.startcoin.org/\">StartCOIN.org</a>. Any transactions you make will not be valid on the new network.");
+    msgBox.exec();
 }

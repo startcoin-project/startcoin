@@ -10,6 +10,7 @@
 #include "init.h"
 #include "util.h"
 #include "ui_interface.h"
+#include "main.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -1070,6 +1071,12 @@ bool AppInit2(boost::thread_group& threadGroup)
             nWalletDBUpdated++;
         }
     } // (!fDisableWallet)
+
+    // Display a warning if we've surpassed the transition to 2.0
+    if (pindexBest->nHeight + 1 > BLOCK_HEIGHT_TRANSITION_2_0)
+    {
+        InitWarning(_("Warning: you are using an old version of StartCOIN. Please upgrade ASAP at https://www.startcoin.org/. Any transactions you make will not be valid on the new network."));
+    }
 
     // ********************************************************* Step 9: import blocks
 
