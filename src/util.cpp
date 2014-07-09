@@ -1031,13 +1031,13 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\StartCOIN
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\StartCOIN
-    // Mac: ~/Library/Application Support/StartCOIN
-    // Unix: ~/.StartCOIN
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\StartCOIN-v2
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\StartCOIN-v2
+    // Mac: ~/Library/Application Support/StartCOIN-c2
+    // Unix: ~/.startcoin-v2
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "StartCOIN";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "StartCOIN-v2";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -1049,10 +1049,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     fs::create_directory(pathRet);
-    return pathRet / "StartCOIN";
+    return pathRet / "StartCOIN-v2";
 #else
     // Unix
-    return pathRet / ".startcoin";
+    return pathRet / ".startcoin-v2";
 #endif
 #endif
 }
