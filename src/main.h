@@ -26,7 +26,7 @@ class CNode;
 struct CBlockIndexWorkComparator;
 
 /** The block height at which we transition to StartCOIN 2.0 **/
-static const unsigned int  BLOCK_HEIGHT_TRANSITION_2_0 = 25000;
+static const int  BLOCK_HEIGHT_TRANSITION_2_0 = 25000;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 1000000;                      // 1000KB block hard limit

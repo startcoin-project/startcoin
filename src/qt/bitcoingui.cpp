@@ -147,6 +147,16 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     // Install event filter to be able to catch status tip events (QEvent::StatusTip)
     this->installEventFilter(this);
 
+    // Display a warning if we've surpassed the transition to 2.0
+    if (clientModel->getNumBlocks() > BLOCK_HEIGHT_TRANSITION_2_0)
+    {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("StartCOIN - please upgrade");
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("Warning: you are using an old version of StartCOIN. Please upgrade ASAP at <a href=\"https://www.startcoin.org/\">StartCOIN.org</a>. Any transactions you make will not be valid on the new network.");
+        msgBox.exec();
+    }
+
     // Initially wallet actions should be disabled
     setWalletActionsEnabled(false);
 }
