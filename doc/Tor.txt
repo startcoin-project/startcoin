@@ -50,10 +50,10 @@ reachable from the Tor network. Add these lines to your /etc/tor/torrc (or equiv
 config file):
 
   HiddenServiceDir /var/lib/tor/startcoin-service/
-  HiddenServicePort 7247 127.0.0.1:7247
+  HiddenServicePort 9247 127.0.0.1:9247
 
 The directory can be different of course, but (both) port numbers should be equal to
-your startcoind's P2P listen port (7247 by default).
+your startcoind's P2P listen port (9247 by default).
 
 -externalip=X   You can tell startcoin about its publicly reachable address using
                 this option, and this can be a .onion address. Given the above
@@ -83,7 +83,7 @@ specify:
 
   ./startcoind ... -discover
 
-and open port 7247 on your firewall (or use -upnp).
+and open port 9247 on your firewall (or use -upnp).
 
 If you only want to use Tor to reach onion addresses, but not use it as a proxy
 for normal IPv4/IPv6 communication, use:
