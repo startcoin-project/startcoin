@@ -1068,12 +1068,11 @@ static const int64 nSubsidyGenesisBlock = 1 * COIN;
 static const int64 nSubsidyInitialBlock = 42024000 * COIN;
 static const int64 nSubsidyRolloffBlock = 0 * COIN;
 static const int64 nSubsidyBase = 40 * COIN;
+static const int64 nSubsidyCompensationBlock = 25000 * nSubsidyBase;
 
 static const int nHeightGenesisBlock = 0;
 static const int nHeightInitialBlock = 1;
 static const int nHeightRolloffBlocks = 120;
-static const int nHeightKGWBlocks = 20000;
-static const int nHeightKGWBlocksTest = 30000;
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
@@ -1085,6 +1084,11 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     if (nHeight == nHeightInitialBlock)
     {
         return nSubsidyInitialBlock + nFees;
+    }
+    
+    if (nHeight == nHeightInitialBlock + 1)
+    {
+        return nSubsidyCompensationBlock + nFees;
     }
 
     if (nHeight < nHeightRolloffBlocks)
