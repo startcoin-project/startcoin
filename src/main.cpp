@@ -1067,6 +1067,7 @@ static const int64 nSubsidyGenesisBlock = 1 * COIN;
 static const int64 nSubsidyInitialBlock = 42024000 * COIN;
 static const int64 nSubsidyRolloffBlock = 0 * COIN;
 static const int64 nSubsidyBase = 40 * COIN;
+static const int64 nSubsidyTransitionBlock = 0 * COIN;
 
 static const int nHeightGenesisBlock = 0;
 static const int nHeightInitialBlock = 1;
@@ -1087,6 +1088,12 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     if (nHeight < nHeightRolloffBlocks)
     {
         return nSubsidyRolloffBlock + nFees;
+    }
+
+    // No block reward after transition
+    if (nHeight > BLOCK_HEIGHT_TRANSITION_2_0)
+    {
+        return nSubsidyTransitionBlock + nFees;
     }
 
     int64 nSubsidy = nSubsidyBase;
