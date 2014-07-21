@@ -9,7 +9,7 @@
 #include "sync.h"
 #include "net.h"
 #include "script.h"
-#include "scrypt.h"
+#include "hashblock.h"
 
 #include <list>
 
@@ -24,9 +24,6 @@ class CInv;
 class CNode;
 
 struct CBlockIndexWorkComparator;
-
-/** The block height at which we transition to StartCOIN 2.0 **/
-static const int  BLOCK_HEIGHT_TRANSITION_2_0 = 25000;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 1000000;                      // 1000KB block hard limit
@@ -98,6 +95,7 @@ extern int64 nHPSTimerStart;
 extern int64 nTimeBestReceived;
 extern CCriticalSection cs_setpwalletRegistered;
 extern std::set<CWallet*> setpwalletRegistered;
+extern std::map<uint256, CBlock*> mapOrphanBlocks;
 extern unsigned char pchMessageStart[4];
 extern bool fImporting;
 extern bool fReindex;
@@ -1322,7 +1320,7 @@ public:
 
     uint256 GetHash() const
     {
-        return Hash(BEGIN(nVersion), END(nNonce));
+        return Hash9(BEGIN(nVersion), END(nNonce));
     }
 
     int64 GetBlockTime() const
@@ -1368,9 +1366,7 @@ public:
 
     uint256 GetPoWHash() const
     {
-        uint256 thash;
-        scrypt_1024_1_1_256(BEGIN(nVersion), BEGIN(thash));
-        return thash;
+        return GetHash();
     }
 
     CBlockHeader GetBlockHeader() const

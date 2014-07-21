@@ -10,15 +10,16 @@ Specifications
 * 1 minute average block time
 * 40 coins per block
 * Block reward halves every 12 months
-* Retargets difficulty temporally using Kimoto's Gravity Well
+* Retargets difficulty temporally using DigiShield
+* x11 ASIC-resistant Proof-of-Work algorithm
 
 Port numbers
 ------------
 
 The following port numbers are used by StartCOIN.
 
-* P2P uses port 7247 (17247 on Testnet)
-* RPC uses port 7347 (17347 on Testnet)
+* P2P uses port 9247 (19247 on Testnet)
+* RPC uses port 99347 (19347 on Testnet)
 
 Message start string
 --------------------

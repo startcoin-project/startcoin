@@ -69,7 +69,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     prevBlocks(0)
 {
     restoreWindowGeometry();
-    setWindowTitle(tr("StartCOIN") + " v1.0 - " + tr("Wallet"));
+    setWindowTitle(tr("StartCOIN") + " v2.0 - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     QApplication::setWindowIcon(QIcon(":icons/bitcoin"));
     setWindowIcon(QIcon(":icons/bitcoin"));
@@ -146,16 +146,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
     // Install event filter to be able to catch status tip events (QEvent::StatusTip)
     this->installEventFilter(this);
-
-    // Display a warning if we've surpassed the transition to 2.0
-    if (clientModel->getNumBlocks() > BLOCK_HEIGHT_TRANSITION_2_0)
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("StartCOIN - please upgrade");
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.setText("Warning: you are using an old version of StartCOIN. Please upgrade ASAP at <a href=\"https://www.startcoin.org/\">StartCOIN.org</a>. Any transactions you make will not be valid on the new network.");
-        msgBox.exec();
-    }
 
     // Initially wallet actions should be disabled
     setWalletActionsEnabled(false);
@@ -388,7 +378,7 @@ void BitcoinGUI::createTrayIcon()
 #ifndef Q_OS_MAC
     trayIcon = new QSystemTrayIcon(this);
 
-    trayIcon->setToolTip(tr("StartCOIN client"));
+    trayIcon->setToolTip(tr("StartCOIN v2.0 client"));
     trayIcon->setIcon(QIcon(":/icons/toolbar"));
     trayIcon->show();
 #endif

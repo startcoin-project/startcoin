@@ -10,7 +10,7 @@
 #include "init.h"
 #include "util.h"
 #include "ui_interface.h"
-#include "main.h"
+#include "checkpointsync.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -308,7 +308,7 @@ std::string HelpMessage()
         "  -socks=<n>             " + _("Select the version of socks proxy to use (4-5, default: 5)") + "\n" +
         "  -tor=<ip:port>         " + _("Use proxy to reach tor hidden services (default: same as -proxy)") + "\n"
         "  -dns                   " + _("Allow DNS lookups for -addnode, -seednode and -connect") + "\n" +
-        "  -port=<port>           " + _("Listen for connections on <port> (default: 7247 or testnet: 17247)") + "\n" +
+        "  -port=<port>           " + _("Listen for connections on <port> (default: 9247 or testnet: 19247)") + "\n" +
         "  -maxconnections=<n>    " + _("Maintain at most <n> connections to peers (default: 125)") + "\n" +
         "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n" +
         "  -connect=<ip>          " + _("Connect only to the specified node(s)") + "\n" +
@@ -351,7 +351,7 @@ std::string HelpMessage()
 #endif
         "  -rpcuser=<user>        " + _("Username for JSON-RPC connections") + "\n" +
         "  -rpcpassword=<pw>      " + _("Password for JSON-RPC connections") + "\n" +
-        "  -rpcport=<port>        " + _("Listen for JSON-RPC connections on <port> (default: 7347 or testnet: 17347)") + "\n" +
+        "  -rpcport=<port>        " + _("Listen for JSON-RPC connections on <port> (default: 9347 or testnet: 19347)") + "\n" +
         "  -rpcallowip=<ip>       " + _("Allow JSON-RPC connections from specified IP address") + "\n" +
 #ifndef QT_GUI
         "  -rpcconnect=<ip>       " + _("Send commands to node running on <ip> (default: 127.0.0.1)") + "\n" +
@@ -598,6 +598,14 @@ bool AppInit2(boost::thread_group& threadGroup)
     const char* pszP2SH = "/P2SH/";
     COINBASE_FLAGS << std::vector<unsigned char>(pszP2SH, pszP2SH+strlen(pszP2SH));
 
+    // Set the checkpoint private key, if present
+    // This node will be the ACP master node
+    if (mapArgs.count("-checkpointkey")) {
+        if (!SetCheckpointPrivKey(mapArgs["-checkpointkey"].c_str())) {
+            InitError(strprintf(_("Invalid checkpoint private key for -checkpointkey=<key>: '%s'"), mapArgs["-checkpointkey"].c_str()));
+        }
+    }
+
     // Fee-per-kilobyte amount considered the same as "free"
     // If you are mining, be careful setting this:
     // if you set it to zero then
@@ -669,10 +677,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     int64 nStart;
-
-#if defined(USE_SSE2)
-    scrypt_detect_sse2();
-#endif
 
     // ********************************************************* Step 5: verify wallet database integrity
 
@@ -1071,12 +1075,6 @@ bool AppInit2(boost::thread_group& threadGroup)
             nWalletDBUpdated++;
         }
     } // (!fDisableWallet)
-
-    // Display a warning if we've surpassed the transition to 2.0
-    if (pindexBest->nHeight + 1 > BLOCK_HEIGHT_TRANSITION_2_0)
-    {
-        InitWarning(_("Warning: you are using an old version of StartCOIN. Please upgrade ASAP at https://www.startcoin.org/. Any transactions you make will not be valid on the new network."));
-    }
 
     // ********************************************************* Step 9: import blocks
 

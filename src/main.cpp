@@ -13,6 +13,7 @@
 #include "init.h"
 #include "ui_interface.h"
 #include "checkqueue.h"
+#include "checkpointsync.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -33,7 +34,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x1044e062c339706fc62cc079674bf93ad5d11015a19861ff8aa79d07988375e9");
+uint256 hashGenesisBlock("0x00000bb6b5dcf5e81dee7f18ebd51055228d5fb3e41cc62f4034488f8eaf4448");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // StartCOIN: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1067,7 +1068,7 @@ static const int64 nSubsidyGenesisBlock = 1 * COIN;
 static const int64 nSubsidyInitialBlock = 42024000 * COIN;
 static const int64 nSubsidyRolloffBlock = 0 * COIN;
 static const int64 nSubsidyBase = 40 * COIN;
-static const int64 nSubsidyTransitionBlock = 0 * COIN;
+static const int64 nSubsidyCompensationBlock = 25000 * nSubsidyBase;
 
 static const int nHeightGenesisBlock = 0;
 static const int nHeightInitialBlock = 1;
@@ -1084,16 +1085,15 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     {
         return nSubsidyInitialBlock + nFees;
     }
+    
+    if (nHeight == nHeightInitialBlock + 1)
+    {
+        return nSubsidyCompensationBlock + nFees;
+    }
 
     if (nHeight < nHeightRolloffBlocks)
     {
         return nSubsidyRolloffBlock + nFees;
-    }
-
-    // No block reward after transition
-    if (nHeight > BLOCK_HEIGHT_TRANSITION_2_0)
-    {
-        return nSubsidyTransitionBlock + nFees;
     }
 
     int64 nSubsidy = nSubsidyBase;
@@ -1105,7 +1105,7 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 3.5 * 24 * 60 * 60; // StartCOIN: 3.5 days
+static const int64 nTargetTimespan = 60; // StartCOIN: 1 minute
 static const int64 nTargetSpacing = 60; // 1 minute
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
@@ -1141,74 +1141,72 @@ unsigned int static GetNextWorkRequired_V1(const CBlockIndex* pindexLast, const 
     return bnProofOfWorkLimit.GetCompact();
 }
 
-// This is the TW-patched KGW implementation, according to the patch by Nite69 (https://bitcointalk.org/index.php?topic=552895.0)
-// This prevents the Time-Warp attack described by BCX from occurring.
-unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader *pblock, uint64 TargetBlocksSpacingSeconds, uint64 PastBlocksMin, uint64 PastBlocksMax)
-{
-    const CBlockIndex *BlockLastSolved = pindexLast;
-    const CBlockIndex *BlockReading = pindexLast;
-    const CBlockHeader *BlockCreating = pblock;
-    BlockCreating = BlockCreating;
-    uint64 PastBlocksMass = 0;
-    int64 PastRateActualSeconds = 0;
-    int64 PastRateTargetSeconds = 0;
-    double PastRateAdjustmentRatio = double(1);
-    CBigNum PastDifficultyAverage;
-    CBigNum PastDifficultyAveragePrev;
-    double EventHorizonDeviation;
-    double EventHorizonDeviationFast;
-    double EventHorizonDeviationSlow;
-        
-    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || (uint64)BlockLastSolved->nHeight < PastBlocksMin) { return bnProofOfWorkLimit.GetCompact(); }
-
-    int64 LatestBlockTime = BlockLastSolved->GetBlockTime();
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
-        if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
-        PastBlocksMass++;
-        
-        if (i == 1) { PastDifficultyAverage.SetCompact(BlockReading->nBits); }
-        else { PastDifficultyAverage = ((CBigNum().SetCompact(BlockReading->nBits) - PastDifficultyAveragePrev) / i) + PastDifficultyAveragePrev; }
-        PastDifficultyAveragePrev = PastDifficultyAverage;
-        if (LatestBlockTime < BlockReading->GetBlockTime()) { LatestBlockTime = BlockReading->GetBlockTime(); }
-        PastRateActualSeconds = LatestBlockTime - BlockReading->GetBlockTime();
-        PastRateTargetSeconds = TargetBlocksSpacingSeconds * PastBlocksMass;
-        PastRateAdjustmentRatio = double(1);
-        if (PastRateActualSeconds < 1) { PastRateActualSeconds = 1; }
-        if (PastRateActualSeconds != 0 && PastRateTargetSeconds != 0) {
-            PastRateAdjustmentRatio = double(PastRateTargetSeconds) / double(PastRateActualSeconds);
-        }
-        EventHorizonDeviation = 1 + (0.7084 * pow((double(PastBlocksMass)/double(28.2)), -1.228));
-        EventHorizonDeviationFast = EventHorizonDeviation;
-        EventHorizonDeviationSlow = 1 / EventHorizonDeviation;
-        
-        if (PastBlocksMass >= PastBlocksMin) {
-            if ((PastRateAdjustmentRatio <= EventHorizonDeviationSlow) || (PastRateAdjustmentRatio >= EventHorizonDeviationFast)) { assert(BlockReading); break; }
-        }
-        if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
-        BlockReading = BlockReading->pprev;
-    }
-    
-    CBigNum bnNew(PastDifficultyAverage);
-    if (PastRateActualSeconds != 0 && PastRateTargetSeconds != 0) {
-        bnNew *= PastRateActualSeconds;
-        bnNew /= PastRateTargetSeconds;
-    }
-
-    if (bnNew > bnProofOfWorkLimit) { bnNew = bnProofOfWorkLimit; }
-        
-    return bnNew.GetCompact();
-}
-
 // Subsequent retargeting
 unsigned int static GetNextWorkRequired_V2(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
 {
-    static const unsigned int TimeDaySeconds = 60 * 60 * 24; // seconds per day
-    int64 PastSecondsMin = TimeDaySeconds * 0.01;
-    int64 PastSecondsMax = TimeDaySeconds * 0.14;
-    uint64 PastBlocksMin = PastSecondsMin / nTargetSpacing;
-    uint64 PastBlocksMax = PastSecondsMax / nTargetSpacing;
+    unsigned int nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
     
-    return KimotoGravityWell(pindexLast, pblock, nTargetSpacing, PastBlocksMin, PastBlocksMax);
+    int64_t retargetTimespan = nTargetTimespan;
+    int64_t retargetInterval = nInterval;
+    
+    // Genesis block
+    if (pindexLast == NULL)
+        return nProofOfWorkLimit;
+
+    // Only change once per interval
+    if ((pindexLast->nHeight+1) % retargetInterval != 0)
+    {
+        if (fTestNet)
+        {
+            // Special difficulty rule for testnet:
+            // If the new block's timestamp is more than 2* nTargetSpacing minutes
+            // then allow mining of a min-difficulty block.
+            if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
+                return nProofOfWorkLimit;
+            else
+            {
+                // Return the last non-special-min-difficulty-rules-block
+                const CBlockIndex* pindex = pindexLast;
+                while (pindex->pprev && pindex->nHeight % retargetInterval != 0 && pindex->nBits == nProofOfWorkLimit)
+                    pindex = pindex->pprev;
+                return pindex->nBits;
+            }
+        }
+        return pindexLast->nBits;
+    }
+
+    // This fixes an issue where a 51% attack can change difficulty at will.
+    // Go back the full period unless it's the first retarget after genesis. Code courtesy of Art Forz
+    int blockstogoback = retargetInterval-1;
+    if ((pindexLast->nHeight+1) != retargetInterval)
+        blockstogoback = retargetInterval;
+
+    // Go back by what we want to be 14 days worth of blocks
+    const CBlockIndex* pindexFirst = pindexLast;
+    for (int i = 0; pindexFirst && i < blockstogoback; i++)
+        pindexFirst = pindexFirst->pprev;
+    assert(pindexFirst);
+
+    // Limit adjustment step
+    int64_t nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
+
+    // amplitude filter - thanks to daft27 for this code
+    nActualTimespan = retargetTimespan + (nActualTimespan - retargetTimespan)/8;
+
+    //DigiShield implementation - thanks to RealSolid & WDC for this code
+    if (nActualTimespan < (retargetTimespan - (retargetTimespan/4)) ) nActualTimespan = (retargetTimespan - (retargetTimespan/4));
+    if (nActualTimespan > (retargetTimespan + (retargetTimespan/2)) ) nActualTimespan = (retargetTimespan + (retargetTimespan/2));
+
+    // Retarget
+    CBigNum bnNew;
+    bnNew.SetCompact(pindexLast->nBits);
+    bnNew *= nActualTimespan;
+    bnNew /= retargetTimespan;
+
+    if (bnNew > bnProofOfWorkLimit)
+        bnNew = bnProofOfWorkLimit;
+
+    return bnNew.GetCompact();
 }
 
 unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
@@ -1219,7 +1217,7 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
         return GetNextWorkRequired_V1(pindexLast, pblock);
     }
 
-    // otherwise, use KGW
+    // otherwise, use DigiShield
     return GetNextWorkRequired_V2(pindexLast, pblock);
 }
 
@@ -1964,6 +1962,14 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
     }
 
+    if (!IsSyncCheckpointEnforced()) // checkpoint advisory mode
+    {
+        if (pindexBest->pprev && !CheckSyncCheckpoint(pindexBest->GetBlockHash(), pindexBest->pprev))
+            strCheckpointWarning = _("Warning: checkpoint on different blockchain fork, contact developers to resolve the issue");
+        else
+            strCheckpointWarning = "";
+    }
+
     std::string strCmd = GetArg("-blocknotify", "");
 
     if (!fIsInitialDownload && !strCmd.empty())
@@ -2260,6 +2266,11 @@ bool CBlock::AcceptBlock(CValidationState &state, CDiskBlockPos *dbp)
         }
     }
 
+    // check that the block satisfies synchronized checkpoint
+   if (IsSyncCheckpointEnforced() // checkpoint enforce mode
+       && !CheckSyncCheckpoint(hash, pindexPrev))
+       return error("AcceptBlock() : rejected by synchronized checkpoint");
+
     // Write block to history file
     try {
         unsigned int nBlockSize = ::GetSerializeSize(*this, SER_DISK, CLIENT_VERSION);
@@ -2286,6 +2297,9 @@ bool CBlock::AcceptBlock(CValidationState &state, CDiskBlockPos *dbp)
             if (nBestHeight > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
     }
+
+    // check pending sync-checkpoint
+    AcceptPendingSyncCheckpoint();
 
     return true;
 }
@@ -2380,6 +2394,14 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     }
 
     printf("ProcessBlock: ACCEPTED\n");
+
+    // if responsible for sync-checkpoint send it
+    if (pfrom && !CSyncCheckpoint::strMasterPrivKey.empty() &&
+        (int)GetArg("-checkpointdepth", -1) >= 0) {
+        printf("ProcessBlock(): Sending sync-checkpoint");
+        SendSyncCheckpoint(AutoSelectSyncCheckpoint());
+    }
+
     return true;
 }
 
@@ -2648,6 +2670,12 @@ bool static LoadBlockIndexDB()
     if (pblocktree->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile))
         printf("LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString().c_str());
 
+    // load hashSyncCheckpoint
+    if (!pblocktree->ReadSyncCheckpoint(hashSyncCheckpoint))
+        printf("LoadBlockIndexDB(): synchronized checkpoint not read\n");
+    else
+        printf("LoadBlockIndexDB(): synchronized checkpoint %s\n", hashSyncCheckpoint.ToString().c_str());
+
     // Load nBestInvalidWork, OK if it doesn't exist
     CBigNum bnBestInvalidWork;
     pblocktree->ReadBestInvalidWork(bnBestInvalidWork);
@@ -2777,8 +2805,7 @@ bool LoadBlockIndex()
         pchMessageStart[1] = 0xc4;
         pchMessageStart[2] = 0xb9;
         pchMessageStart[3] = 0xde;
-        //hashGenesisBlock = uint256("0xa6622fc350215b20cffd2039845af19d20f0648205695045180d19442aba3279");
-        hashGenesisBlock = uint256("0xa57e889a606d0535ff5f1784afe914c44994f7fdc2858277faa7e2d0ecb093e5");
+        hashGenesisBlock = uint256("0x000000344d8f4c75001f0fda455567ec2dd0b7ee1d19cf45d6e3fa15472055b1c");
     }
 
     //
@@ -2805,7 +2832,7 @@ bool InitBlockIndex() {
     if (!fReindex) {
         // Genesis block
 
-        const char* pszTimestamp = "BBC News 09/06/14: Computer AI passes Turing test in world first";
+        const char* pszTimestamp = "18/07/2014 - Rosetta heads for space Rubber Duck";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
@@ -2818,16 +2845,15 @@ bool InitBlockIndex() {
         block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
-        block.nVersion = 1;;
-        block.nTime    = 1402348768;
+        block.nVersion = 1;
+        block.nTime    = 1405688500;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 1116511;
+        block.nNonce   = 1494132;
 
         if (fTestNet)
         {
-            block.nTime    = 1402355325;
-            //block.nNonce   = 917203;
-            block.nNonce   = 1392901;
+            block.nTime    = 1404645149;
+            block.nNonce   = 1020189;
         }
 
         //// debug print
@@ -2837,20 +2863,19 @@ bool InitBlockIndex() {
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
 
         // Merkle root
-        assert(block.hashMerkleRoot == uint256("0x3c4544908b26095e997dc5b52ef443ebc5e789c857147e5f782f47b71ed168f2"));
+        assert(block.hashMerkleRoot == uint256("0xb7828a1f391aa44b1d63cc5aecf80ba6f23f8018dcc136e4dca1859e105f9a87"));
 
         // Set to true to generate a new Genesis block
-        if (true && block.GetHash() != hashGenesisBlock)
+        if (false && block.GetHash() != hashGenesisBlock)
         {
             printf("Searching for genesis block...\n");
 
             uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
             uint256 thash;
-            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
 
             loop
             {
-                scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+                thash = block.GetPoWHash();
                 if (thash <= hashTarget)
                     break;
                 if ((block.nNonce & 0xFFF) == 0)
@@ -2883,10 +2908,16 @@ bool InitBlockIndex() {
                 return error("LoadBlockIndex() : writing genesis block to disk failed");
             if (!block.AddToBlockIndex(state, blockPos))
                 return error("LoadBlockIndex() : genesis block not accepted");
+            if (!WriteSyncCheckpoint(hashGenesisBlock))
+                return error("LoadBlockIndex() : failed to init sync checkpoint");
         } catch(std::runtime_error &e) {
             return error("LoadBlockIndex() : failed to initialize block database: %s", e.what());
         }
     }
+
+    // if checkpoint master key changed must reset sync-checkpoint
+    if (!CheckCheckpointPubKey())
+        return error("LoadBlockIndex() : failed to reset checkpoint master pubkey");
 
     return true;
 }
@@ -3061,6 +3092,13 @@ string GetWarnings(string strFor)
     if (GetBoolArg("-testsafemode"))
         strRPC = "test";
 
+    // Checkpoint warning
+    if (strCheckpointWarning != "")
+    {
+        nPriority = 900;
+        strStatusBar = strCheckpointWarning;
+    }
+
     if (!CLIENT_VERSION_IS_RELEASE)
         strStatusBar = _("This is a pre-release test build - use at your own risk - do not use for mining or merchant applications");
 
@@ -3076,6 +3114,13 @@ string GetWarnings(string strFor)
     {
         nPriority = 2000;
         strStatusBar = strRPC = _("Warning: Displayed transactions may not be correct! You may need to upgrade, or other nodes may need to upgrade.");
+    }
+
+    // if detected invalid checkpoint enter safe mode
+    if (hashInvalidCheckpoint != 0)
+    {
+        nPriority = 3000;
+        strStatusBar = strRPC = "WARNING: Inconsistent checkpoint found! Stop enforcing checkpoints and notify developers to resolve the issue.";
     }
 
     // Alerts
@@ -3389,11 +3434,22 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 item.second.RelayTo(pfrom);
         }
 
+        // relay sync-checkpoint
+        {
+            LOCK(cs_hashSyncCheckpoint);
+            if (!checkpointMessage.IsNull())
+                checkpointMessage.RelayTo(pfrom);
+        }
+
         pfrom->fSuccessfullyConnected = true;
 
         printf("receive version message: %s: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pfrom->cleanSubVer.c_str(), pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString().c_str(), addrFrom.ToString().c_str(), pfrom->addr.ToString().c_str());
 
         cPeerBlockCounts.input(pfrom->nStartingHeight);
+
+        // ask for pending sync-checkpoint if any
+        if (!IsInitialBlockDownload())
+            AskForPendingSyncCheckpoint(pfrom);
     }
 
 
@@ -3801,6 +3857,20 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
+    else if (strCommand == "checkpoint") // synchronized checkpoint
+    {
+        CSyncCheckpoint checkpoint;
+        vRecv >> checkpoint;
+
+        if (checkpoint.ProcessSyncCheckpoint(pfrom))
+        {
+            // Relay
+            pfrom->hashCheckpointKnown = checkpoint.hashCheckpoint;
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes)
+                checkpoint.RelayTo(pnode);
+        }
+    }
 
     else if (!fBloomFilters &&
              (strCommand == "filterload" ||
@@ -4678,10 +4748,9 @@ void static StartCOINMiner(CWallet *pwallet)
             unsigned int nHashesDone = 0;
 
             uint256 thash;
-            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
             loop
             {
-                scrypt_1024_1_1_256_sp(BEGIN(pblock->nVersion), BEGIN(thash), scratchpad);
+                thash = pblock->GetPoWHash();
 
                 if (thash <= hashTarget)
                 {

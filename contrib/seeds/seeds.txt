@@ -1,2 +1,2 @@
-192.99.35.69:7247 # node1.startcoin.org
-37.59.54.5:7247 # node2.startcoin.org
+192.99.35.69:9247 # node1.startcoin.org
+37.59.54.5:9247 # node2.startcoin.org
