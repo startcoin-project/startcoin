@@ -19,7 +19,7 @@ Port numbers
 The following port numbers are used by StartCOIN.
 
 * P2P uses port 9247 (19247 on Testnet)
-* RPC uses port 99347 (19347 on Testnet)
+* RPC uses port 9347 (19347 on Testnet)
 
 Message start string
 --------------------
