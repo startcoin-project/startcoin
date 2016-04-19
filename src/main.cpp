@@ -2267,9 +2267,13 @@ bool CBlock::AcceptBlock(CValidationState &state, CDiskBlockPos *dbp)
     }
 
     // check that the block satisfies synchronized checkpoint
-   if (IsSyncCheckpointEnforced() // checkpoint enforce mode
-       && !CheckSyncCheckpoint(hash, pindexPrev))
-       return error("AcceptBlock() : rejected by synchronized checkpoint");
+    // Gaurd agains null pointer (pindexPrev) on genisis block
+    // was causing -reindex to crash startcoind
+    if (hash != hashGenesisBlock) {
+        if (IsSyncCheckpointEnforced() // checkpoint enforce mode
+            && !CheckSyncCheckpoint(hash, pindexPrev))
+            return error("AcceptBlock() : rejected by synchronized checkpoint");
+    }
 
     // Write block to history file
     try {
